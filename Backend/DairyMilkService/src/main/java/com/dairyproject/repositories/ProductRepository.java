@@ -15,9 +15,13 @@ public interface ProductRepository extends JpaRepository<ProductDetails, Integer
     @Query("select p from ProductDetails p")
     public Set<ProductDetails> findAllProductDetails();
 
-    @Query("select p from ProductDetails p where p.name = :name")
+    @Query("SELECT p FROM ProductDetails p JOIN FETCH p.sellerDetails WHERE p.name = :name")
     public ProductDetails findProductDetailsByName(@Param("name") String name);
 
+
+    @Query("SELECT p FROM ProductDetails p  WHERE p.name = :name")
+    public ProductDetails findProductDetailsByNameOnly(@Param("name") String name);
+    
     @Query("select p from ProductDetails p where p.PID = :pid")
     public ProductDetails findProductDetailByPid(@Param("pid") Integer PID);
 

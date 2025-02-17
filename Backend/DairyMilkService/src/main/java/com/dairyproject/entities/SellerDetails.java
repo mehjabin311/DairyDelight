@@ -4,9 +4,10 @@ import java.util.Set;
 
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
-import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -26,12 +27,15 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Table
 
 @Getter
 @Setter
+@ToString(exclude = "productDetails")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "sellerId")
 public class SellerDetails {
 
 	@Id
@@ -80,7 +84,7 @@ public class SellerDetails {
 //	@Pattern(regexp = "(?=^.{6,15}$)(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&amp;*()_+}{&quot;:;'?/&gt;.&lt;,])(?!.*\\s).*$", message = "password must contain atleast 1 uppercase, 1 lowercase, 1 special character and 1 digit ")
 	private String password;
 
-	@OneToOne(cascade = CascadeType.PERSIST)
+	@OneToOne(cascade = CascadeType.ALL, optional = true)
 	@JoinColumn(name = "AID")
 	private AddressDetails address;
 
@@ -89,5 +93,11 @@ public class SellerDetails {
 	@JsonIgnore
 	private Set<ProductDetails> productDetails;
 
+	public void removeProduct(ProductDetails product) {
+		if (this.productDetails != null) {
+			this.productDetails.remove(product);
+			product.getSellerDetails().remove(this); // Remove seller from the product's set
+		}
+	}
 
 }

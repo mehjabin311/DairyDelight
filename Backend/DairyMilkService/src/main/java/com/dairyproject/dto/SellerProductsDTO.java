@@ -6,13 +6,11 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Getter
-@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class SellerProducts {
+public class SellerProductsDTO {
 	private String emailId;
 	private String password;
 
@@ -28,10 +26,10 @@ public class SellerProducts {
 		if (this == obj) {
 			return true;
 		}
-		if (!(obj instanceof SellerProducts)) {
+		if (!(obj instanceof SellerProductsDTO)) {
 			return false;
 		}
-		SellerProducts other = (SellerProducts) obj;
+		SellerProductsDTO other = (SellerProductsDTO) obj;
 		return Objects.equals(emailId, other.emailId) && Objects.equals(password, other.password)
 				&& Objects.equals(productDetails, other.productDetails);
 	}

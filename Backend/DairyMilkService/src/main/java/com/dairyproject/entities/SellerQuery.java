@@ -1,5 +1,7 @@
 package com.dairyproject.entities;
 
+import org.hibernate.validator.constraints.Length;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -9,10 +11,6 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotEmpty;
-
-import org.hibernate.validator.constraints.Length;
-import org.springframework.stereotype.Component;
-
 import lombok.Getter;
 import lombok.Setter;
 

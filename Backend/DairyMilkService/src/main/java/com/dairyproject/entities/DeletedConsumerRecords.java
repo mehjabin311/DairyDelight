@@ -6,9 +6,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-
-import org.springframework.stereotype.Component;
-
 import lombok.Getter;
 import lombok.Setter;
 

@@ -3,6 +3,7 @@ package com.dairyproject.services;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -10,12 +11,12 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.dairyproject.dto.ChangePassword;
-import com.dairyproject.dto.Login;
-import com.dairyproject.dto.SellerProducts;
+import com.dairyproject.dto.ChangePasswordDTO;
+import com.dairyproject.dto.LoginDTO;
+import com.dairyproject.dto.SellerDTO;
+import com.dairyproject.dto.SellerProductsDTO;
 import com.dairyproject.entities.AddressDetails;
 import com.dairyproject.entities.ConsumerDetails;
-import com.dairyproject.entities.DeletedSellerRecords;
 import com.dairyproject.entities.ProductDetails;
 import com.dairyproject.entities.SellerDetails;
 import com.dairyproject.exceptions.EmailAddressFoundException;
@@ -27,17 +28,13 @@ import com.dairyproject.exceptions.UnmatchedPasswordException;
 import com.dairyproject.exceptions.UsernameFoundException;
 import com.dairyproject.repositories.AddressRepository;
 import com.dairyproject.repositories.ConsumerRepository;
-import com.dairyproject.repositories.DeletedSellerRepository;
 import com.dairyproject.repositories.SellerRepository;
 
 import jakarta.transaction.Transactional;
 
 @Service
 @Transactional
-public class SellerServices {
-
-	//@Autowired
-	private AddressDetails addressDetails;
+public class SellerServiceImpl implements SellerService {
 
 	@Autowired
 	private AddressRepository addRepo;
@@ -45,29 +42,23 @@ public class SellerServices {
 	@Autowired
 	private SellerRepository sellRepo;
 
-	//@Autowired
-	private ConsumerDetails consumerDetails;
-
-	//@Autowired
-	private SellerDetails sellDetails;
-
 	@Autowired
 	private ConsumerRepository conRepo;
 
-	@Autowired
-	private DeletedSellerRepository delRepo;
-
-	//@Autowired
-	private DeletedSellerRecords delSelRecord;
+//	@Autowired
+//	private DeletedSellerRepository delRepo;
 
 	@Autowired
-	private DeletedRecordsServices delSelServ;
+	private DeletedRecordsService delSelServ;
 
-	//@Autowired
+	@Autowired
+	private ProductService proServ;
+
+//	private DeletedSellerRecords delSelRecord;
 	private ProductDetails proDetails;
-
-	@Autowired
-	private ProductServices proServ;
+	private SellerDetails sellDetails;
+	private AddressDetails addressDetails;
+	private ConsumerDetails consumerDetails;
 
 	public SellerDetails registerNewSeller(SellerDetails sellerDetails)
 			throws EmailAddressFoundException, UsernameFoundException, PhoneNumberFoundException {
@@ -75,34 +66,36 @@ public class SellerServices {
 		int username = sellRepo.findSellerDetailsByUsername(sellerDetails.getUsername());
 		int phoneNumber = sellRepo.findSellerDetailsByPhoneNumber(sellerDetails.getPhoneNumber());
 
-		addressDetails = addRepo.findAddressDetailsByPincode(sellerDetails.getAddress().getPincode());
-		String encryptPassword = Base64.getEncoder()
-				.encodeToString(sellerDetails.getPassword().getBytes());
+		// addressDetails =
+		// addRepo.findAddressDetailsByPincode(sellerDetails.getAddress().getPincode());
+		String encryptPassword = Base64.getEncoder().encodeToString(sellerDetails.getPassword().getBytes());
+		sellerDetails.setPassword(encryptPassword);
+		System.out.println(encryptPassword);
 		if (email == 1) {
 			throw new EmailAddressFoundException("Email address already registered");
 		} else if (username == 1) {
 			throw new UsernameFoundException("Username already taken, please try with another one");
 		} else if (phoneNumber == 1) {
 			throw new PhoneNumberFoundException("Phone Number already registered");
-		} else if (addressDetails != null) {
-			sellerDetails.setAddress(addressDetails);
-			
-			sellRepo.save(sellerDetails);
-			addressDetails = null;
-			return sellRepo.findSellerDetailsByEmailAndPassword(sellerDetails.getEmailId(),
-					sellerDetails.getPassword());
 		} else {
-			sellerDetails.setPassword(encryptPassword);
 			sellRepo.save(sellerDetails);
-			return sellRepo.findSellerDetailsByEmailAndPassword(sellerDetails.getEmailId(),
-					sellerDetails.getPassword());
+			return sellRepo.findSellerDetailsByEmailPass(sellerDetails.getEmailId(), sellerDetails.getPassword());
 		}
 	}
 
+//	else if (addressDetails != null) {
+//		sellerDetails.setAddress(addressDetails);
+//		sellRepo.save(sellerDetails);
+//		addressDetails = null;
+//		return sellRepo.findSellerDetailsByEmailPass(sellerDetails.getEmailId(),
+//				sellerDetails.getPassword());
+//	}
 	public SellerDetails getSellerDetailsByEmailAndPassword(String emailId, String password)
 			throws UnsupportedEncodingException {
 		String encryptPassword = Base64.getEncoder().encodeToString(password.getBytes("UTF-8"));
-		return sellRepo.findSellerDetailsByEmailAndPassword(emailId, encryptPassword);
+		SellerDetails s = sellRepo.findSellerDetailsByEmailPass(emailId, encryptPassword);
+		System.out.println(s);
+		return s;
 	}
 
 	public SellerDetails getSellerDetailsByUsernameAndPassword(String username, String password) {
@@ -125,13 +118,15 @@ public class SellerServices {
 		return sellRepo.findSellerDetailsByPhoneNumberOnly(phoneNumber);
 	}
 
-	public String deleteSellerDetailsByEmailId(Login login) throws UnsupportedEncodingException {
+	public String deleteSellerDetailsByEmailId(LoginDTO login) throws UnsupportedEncodingException {
 		return delSelServ.deleteSellerByEmailId(login);
 	}
 
-	public String deleteSellerDetailsBySellerId(Integer sellerId) {
-		return delSelServ.deleteSellerrBySellerId(sellerId);
-	}
+//	public String deleteSellerDetailsBySellerId(Integer sellerId) {
+//		String i = delSelServ.deleteSellerBySellerId(sellerId);
+//		System.out.println(i);
+//		return i;
+//	}
 
 	public List<SellerDetails> getAllSellerList() {
 		return sellRepo.findAllSellerDetails();
@@ -170,39 +165,117 @@ public class SellerServices {
 
 	}
 
-	public Set<SellerDetails> getSellersByProductAndLocality(String emailId, String productName) {
+	private SellerDTO convertToDTO(SellerDetails sellerDetails) {
+		if (sellerDetails == null) {
+			return null;
+		}
+		System.out.println("Converting SellerDetails to SellerDTO: " + sellerDetails.getFirstName());
 
-		consumerDetails = conRepo.findConsumerDetailsByEmailIdOnly(emailId);
+		SellerDTO dto = new SellerDTO();
+		dto.setEmailId(sellerDetails.getEmailId());
+		dto.setFirstName(sellerDetails.getFirstName());
+		dto.setLastName(sellerDetails.getLastName());
 
-		List<ProductDetails> productDetails = new ArrayList<>(proServ.getAllProductDetails());
-		List<SellerDetails> sellerList = new ArrayList<>();
+		if (sellerDetails.getAddress() != null) {
+			dto.setTown(sellerDetails.getAddress().getTown());
+			dto.setDistrict(sellerDetails.getAddress().getDistrict());
+			dto.setPincode(sellerDetails.getAddress().getPincode());
 
-		for (int i = 0; i < productDetails.size(); i++) {
-			if (productDetails.get(i).getName().equals(productName)) {
-				sellerList = new ArrayList<>(productDetails.get(i).getSellerDetails());
-			}
+		} else {
+			System.out.println("Address is NULL for seller: " + sellerDetails.getFirstName());
+		}
+		System.out.println(dto);
+		return dto;
+	}
+
+//	public SellerDTO getSellerDetailsDTOByEmailId(String emailId) {
+//        SellerDetails sellerDetails = sellRepo.findSellerDetailsByEmailIdOnly(emailId);
+//        return convertToDTO(sellerDetails);
+//    }
+
+//	public Set<SellerDTO> getSellersByProductAndLocality(String emailId, String productName) {
+//
+//		consumerDetails = conRepo.findConsumerDetailsByEmailIdOnly(emailId);
+//
+//		List<ProductDetails> productDetails = new ArrayList<>(proServ.getAllProductDetails());
+//		List<SellerDetails> sellerList = new ArrayList<>();
+//
+//		for (int i = 0; i < productDetails.size(); i++) {
+//			if (productDetails.get(i).getName().equals(productName)) {
+//				sellerList = new ArrayList<>(productDetails.get(i).getSellerDetails());
+//				break;
+//
+//			}
+//		}
+//
+//		Set<SellerDTO> sellerFinalList = new HashSet<>();
+//
+//		for (int i = 0; i < sellerList.size(); i++) {
+//			if (sellerList.get(i).getAddress().getPincode().equals(consumerDetails.getAddress().getPincode())) {
+//				sellerFinalList.add(convertToDTO(sellerList.get(i)));
+//			}
+//
+//			if (sellerList.get(i).getAddress().getTown().equals(consumerDetails.getAddress().getTown())) {
+//				sellerFinalList.add(convertToDTO(sellerList.get(i)));
+//			}
+//
+//			if (sellerList.get(i).getAddress().getDistrict().equals(consumerDetails.getAddress().getDistrict())) {
+//				sellerFinalList.add(convertToDTO(sellerList.get(i)));
+//			}
+//		}
+//		consumerDetails = null;
+//		productDetails = null;
+//		sellerList = null;
+//		return sellerFinalList;
+//
+//	}
+
+	@Transactional
+	public Set<SellerDTO> getSellersByProductAndLocality(String emailId, String productName) {
+		System.out.println(productName);
+		ConsumerDetails consumerDetails = conRepo.findConsumerDetailsByEmailIdOnly(emailId);
+		ProductDetails product = proServ.getProductDetailsByName(productName);
+		System.out.println(product);
+
+		if (product == null || consumerDetails == null) {
+			return Collections.emptySet();
 		}
 
-		Set<SellerDetails> sellerFinalList = new HashSet<>();
-
-		for (int i = 0; i < sellerList.size(); i++) {
-			if (sellerList.get(i).getAddress().getPincode() == consumerDetails.getAddress().getPincode()) {
-				sellerFinalList.add(sellerList.get(i));
-			}
-
-			if (sellerList.get(i).getAddress().getTown() == consumerDetails.getAddress().getTown()) {
-				sellerFinalList.add(sellerList.get(i));
-			}
-
-			if (sellerList.get(i).getAddress().getDistrict() == consumerDetails.getAddress().getDistrict()) {
-				sellerFinalList.add(sellerList.get(i));
-			}
+		Set<SellerDetails> sellers = product.getSellerDetails();
+		System.out.println(sellers);
+		if (sellers == null || sellers.isEmpty()) {
+			return Collections.emptySet();
 		}
-		consumerDetails = null;
-		productDetails = null;
-		sellerList = null;
+
+		String pincode = consumerDetails.getAddress().getPincode();
+		System.out.println(pincode);
+		String town = consumerDetails.getAddress().getTown();
+		System.out.println(town);
+		String district = consumerDetails.getAddress().getDistrict();
+		System.out.println(district);
+		String state = consumerDetails.getAddress().getState();
+		Set<SellerDTO> sellerFinalList = new HashSet<>();
+
+		for (SellerDetails seller : sellers) {
+			AddressDetails address = seller.getAddress();
+			System.out.println("Comparing consumer address with seller address: ");
+			System.out.println("Consumer - Pincode: " + pincode + ", Town: " + town + ", District: " + district);
+			System.out.println("Seller - Pincode: " + address.getPincode() + ", Town: " + address.getTown()
+					+ ", District: " + address.getDistrict());
+
+			if ((address.getDistrict().equals(district) && address.getState().equals(state))) {
+
+				SellerDTO sellerDTO = convertToDTO(seller);
+
+				// Prevent recursive looping by checking existing entries
+				if (!sellerFinalList.contains(sellerDTO)) {
+					sellerFinalList.add(sellerDTO);
+				}
+			}
+			System.out.println(sellerFinalList);
+		}
+
 		return sellerFinalList;
-
 	}
 
 	public SellerDetails updateSellerDetails(SellerDetails sellerDetails) {
@@ -228,13 +301,16 @@ public class SellerServices {
 
 	}
 
-	public String changeSellerPassword(ChangePassword changePassword) throws UnsupportedEncodingException {
+	public String changeSellerPassword(ChangePasswordDTO changePassword)
+			throws UnsupportedEncodingException, IncorrectPasswordException, UnmatchedPasswordException {
 		if (changePassword.getNewPassword().equals(changePassword.getConfirmPassword())) {
 			String encryptPassword = Base64.getEncoder()
 					.encodeToString(changePassword.getOldPassword().getBytes("UTF-8"));
+			String newEncryptPassword = Base64.getEncoder()
+					.encodeToString(changePassword.getNewPassword().getBytes("UTF-8"));
 			sellDetails = sellRepo.findSellerDetailsByEmailAndPassword(changePassword.getEmailId(), encryptPassword);
-			if (sellDetails != null) {
-				sellDetails.setPassword(changePassword.getNewPassword());
+			if (sellDetails != null && sellDetails.getPassword().equals(encryptPassword)) {
+				sellDetails.setPassword(newEncryptPassword);
 				sellRepo.save(sellDetails);
 				return "Password changed successfully.";
 			} else {
@@ -247,23 +323,30 @@ public class SellerServices {
 
 	}
 
-	public Set<ProductDetails> addProducts(SellerProducts sellerProducts) {
-		sellDetails = sellRepo.findSellerDetailsByEmailAndPassword(sellerProducts.getEmailId(),
-				sellerProducts.getPassword());
-
+	public Set<ProductDetails> addProducts(SellerProductsDTO sellerProducts)
+			throws ProductNotFoundException, SellerNotFoundException {
+		String emailId = sellerProducts.getEmailId();
+		sellDetails = sellRepo.findSellerDetailsByEmailIdOnly(sellerProducts.getEmailId());
+		System.out.println("Email ID: " + emailId);
+		System.out.println(sellerProducts.getProductDetails());
+		System.out.println(sellDetails);
 		if (sellDetails != null) {
 			List<String> list = new ArrayList<String>(sellerProducts.getProductDetails());
 
 			Set<ProductDetails> productDetailsSet = sellDetails.getProductDetails();
+			System.out.println(productDetailsSet);
 			Set<SellerDetails> sellerList = new HashSet<>();
 
 			for (int i = 0; i < list.size(); i++) {
-				proDetails = proServ.getProductDetailsByName(list.get(i));
+				System.out.println("Fetching product: " + list.get(i));
+				String pname = list.get(i);
+				proDetails = proServ.getProductDetailsByName(pname);
+				System.out.println(proDetails);
 				if (proDetails != null) {
 					sellerList = proDetails.getSellerDetails();
 					sellerList.add(sellDetails);
 					proDetails.setSellerDetails(sellerList);
-					proServ.updateProductDetailDetails(proDetails);
+					proServ.updateProductDetails(proDetails);
 					productDetailsSet.add(proDetails);
 				} else {
 					throw new ProductNotFoundException(list.get(i) + " product not found !");
@@ -282,7 +365,7 @@ public class SellerServices {
 
 	}
 
-	public Set<ProductDetails> getSellerAllProductDetails(String emailId) {
+	public Set<ProductDetails> getSellerAllProductDetails(String emailId) throws SellerNotFoundException {
 		sellDetails = sellRepo.findSellerDetailsByEmailIdOnly(emailId);
 		if (sellDetails != null) {
 			return sellDetails.getProductDetails();
@@ -296,7 +379,7 @@ public class SellerServices {
 		return null;
 	}
 
-	public String removeProductFromList(String emailId, Integer pid) {
+	public String removeProductFromList(String emailId, Integer pid) throws ProductNotFoundException {
 		sellDetails = sellRepo.findSellerDetailsByEmailIdOnly(emailId);
 		proDetails = proServ.getProductDetailsByPid(pid);
 
@@ -311,4 +394,15 @@ public class SellerServices {
 		throw new ProductNotFoundException("Product not found !");
 	}
 
+	@Override
+	public int deleteSellerDetailsByEmailIdOnly(String emailId) {
+
+		return sellRepo.deleteSellerDetailsByEmailId(emailId);
+	}
+
+	@Override
+	public String deleteSellerDetailsBySellerId(int sellerId) {
+
+		return delSelServ.deleteSellerBySellerId(sellerId);
+	}
 }

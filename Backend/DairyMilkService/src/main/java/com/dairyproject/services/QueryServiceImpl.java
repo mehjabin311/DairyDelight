@@ -7,7 +7,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.dairyproject.dto.ConsumerQueryMessage;
+import com.dairyproject.dto.QueryMessageDTO;
 import com.dairyproject.entities.ConsumerDetails;
 import com.dairyproject.entities.ConsumerQuery;
 import com.dairyproject.entities.SellerDetails;
@@ -21,7 +21,7 @@ import jakarta.transaction.Transactional;
 
 @Service
 @Transactional
-public class QueryServices {
+public class QueryServiceImpl implements QueryService {
 
 	@Autowired
 	private ConsumerQueryRepository conQueryRepo;
@@ -35,15 +35,13 @@ public class QueryServices {
 	@Autowired
 	private SellerRepository sellRepo;
 
-	//@Autowired
 	private ConsumerDetails conDetails;
-
-	//@Autowired
 	private SellerDetails sellDetails;
 
 	// Consumer Query
 
-	public String insertNewConsumerQuery(ConsumerQueryMessage consumerQuery) {
+	@Override
+	public String insertNewConsumerQuery(QueryMessageDTO consumerQuery) {
 		ConsumerQuery conQuery = new ConsumerQuery();
 		conDetails = conRepo.findConsumerDetailsByEmailIdOnly(consumerQuery.getEmailId());
 		if (conDetails != null) {
@@ -60,21 +58,25 @@ public class QueryServices {
 		return "Query insertion failed ! Please try after some time. Sorry for the inconvenience...";
 	}
 
+	@Override
 	public List<ConsumerQuery> getAllConsumerQueries() {
 		return conQueryRepo.findAllConsumerQueries();
 	}
 
+	@Override
 	public List<ConsumerQuery> getConsumerQueriesByDateTime(String dateTime) {
 		return conQueryRepo.findConsumerQueriesByDateTime(dateTime);
 	}
 
+	@Override
 	public List<ConsumerQuery> getConsumerQueriesByConsumerEmailId(String emailId) {
 		return conQueryRepo.findConsumerQueriesByConsumerEmailId(emailId);
 	}
 
 	// Seller Query
 
-	public String insertNewSellerQuery(ConsumerQueryMessage sellerQuery) {
+	@Override
+	public String insertNewSellerQuery(QueryMessageDTO sellerQuery) {
 		SellerQuery sellQuery = new SellerQuery();
 		sellDetails = sellRepo.findSellerDetailsByEmailIdOnly(sellerQuery.getEmailId());
 		if (sellDetails != null) {
@@ -91,16 +93,18 @@ public class QueryServices {
 		return "Query insertion failed ! Please try after some time. Sorry for the inconvenience...";
 	}
 
+	@Override
 	public List<SellerQuery> getAllSellerQueries() {
 		return sellQueryRepo.findAllSellerQueries();
 	}
 
+	@Override
 	public List<SellerQuery> getSellerQueriesByDateTime(String dateTime) {
 		return sellQueryRepo.findSellerQueriesByDateTime(dateTime);
 	}
 
+	@Override
 	public List<SellerQuery> getSellerQueriesBySellerEmailId(String emailId) {
 		return sellQueryRepo.findSellerQueriesBySellerEmailId(emailId);
 	}
-
 }

@@ -1,5 +1,6 @@
 package com.dairyproject.services;
 
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -7,66 +8,72 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.dairyproject.dto.ConfirmPurchaseOrder;
+import com.dairyproject.dto.ConfirmPurchaseOrderDTO;
 import com.dairyproject.entities.ConsumerDetails;
 import com.dairyproject.entities.ProductDetails;
 import com.dairyproject.entities.PurchaseDetails;
 import com.dairyproject.entities.SellerDetails;
 import com.dairyproject.repositories.PurchaseRecordRepository;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 
 @Service
 @Transactional
-public class PurchaseServices {
+public class PurchaseServiceImpl implements PurchaseService {
+
+	@PersistenceContext
+	private EntityManager entityManager;
 
 	@Autowired
 	private PurchaseRecordRepository purchaseRepo;
 
-	//@Autowired
-	private ConsumerDetails conDetails;
+	@Autowired
+	private ConsumerService conServ;
 
 	@Autowired
-	private ConsumerServices conServ;
-
-	//@Autowired
-	private SellerDetails sellDetails;
+	private SellerService sellServ;
 
 	@Autowired
-	private SellerServices sellServ;
-
-	//@Autowired
-	private ProductDetails proDetails;
-
-	@Autowired
-	private ProductServices proServ;
-
-	//@Autowired
-	private PurchaseDetails purchaseDetails;
+	private ProductService proServ;
 
 	@Autowired
 	private PurchaseRecordRepository purRepo;
 
-	long transactionId = 4567895;
+	private static long transactionId = 4567896;
 
+	@Override
 	public List<PurchaseDetails> getAllPurchaseRecords() {
 		return purchaseRepo.findAllPurchaseDetails();
 	}
 
+	@Override
 	public List<PurchaseDetails> getPurchaseDetailsByConsumerEmailId(String emailId) {
-		return purchaseRepo.findAllPurchaseDetailsByConsumerEmailId(emailId);
+		entityManager.clear();
+//        return purchaseRepo.findAllPurchaseDetailsByConsumerEmailId(emailId);
+		List<PurchaseDetails> purchaseDetails = purchaseRepo.findAllPurchaseDetailsByConsumerEmailId(emailId);
+        for (PurchaseDetails purchase : purchaseDetails) {
+            purchase.setSellerDetails(sellServ.getSellerDetailsByEmailId(purchase.getSellerDetails().getEmailId()));
+        }
+        return purchaseDetails;
 	}
 
+	@Override
 	public List<PurchaseDetails> getPurchaseDetailsBySellerEmailId(String emailId) {
 		return purchaseRepo.findAllPurchaseDetailsBySellerEmailId(emailId);
 	}
 
-	public PurchaseDetails getPurchaseDetailsFromPurchaseId(Integer purchaseId) {
+	@Override
+	public PurchaseDetails getPurchaseDetailsByPurchaseId(Integer purchaseId) {
 		return purchaseRepo.findPurchaseDetailsByPurchaseId(purchaseId);
 	}
 
-	public PurchaseDetails insertPurchaseRecord(ConfirmPurchaseOrder confirmPurchaseOrder) {
+	@Override
+	public PurchaseDetails insertPurchaseRecord(ConfirmPurchaseOrderDTO confirmPurchaseOrder)
+			throws UnsupportedEncodingException {
 
+		PurchaseServiceImpl.transactionId = transactionId++;
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm a");
 		String dateTime = dtf.format(LocalDateTime.now());
 
@@ -81,7 +88,7 @@ public class PurchaseServices {
 		purDetails.setQuantity(confirmPurchaseOrder.getQuantity());
 		purDetails.setTotalPrice((productDetails.getPrice() * confirmPurchaseOrder.getQuantity()));
 		purDetails.setPaymentMode(confirmPurchaseOrder.getPaymentMode());
-		purDetails.setTransactionId(++transactionId);
+		purDetails.setTransactionId(transactionId);
 		purDetails.setDateTime(dateTime);
 		purDetails.setStatus("Placed");
 
@@ -96,11 +103,10 @@ public class PurchaseServices {
 
 	}
 
+	@Override
 	public void changeDeliveryStatusBySeller(Integer purchaseId, String status) {
-		purchaseDetails = purRepo.findPurchaseDetailsByPurchaseId(purchaseId);
+		PurchaseDetails purchaseDetails = purRepo.findPurchaseDetailsByPurchaseId(purchaseId);
 		purchaseDetails.setStatus(status);
 		purchaseRepo.save(purchaseDetails);
-		purchaseDetails = null;
-
 	}
 }

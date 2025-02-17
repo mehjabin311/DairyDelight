@@ -5,20 +5,18 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-
-import org.springframework.stereotype.Component;
-
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Table
-
+@ToString
 @Getter
 @Setter
 public class PurchaseDetails {
@@ -27,15 +25,15 @@ public class PurchaseDetails {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int purchaseId;
 
-	@OneToOne
+	@ManyToOne
 	@JoinColumn(name = "consumerId")
 	private ConsumerDetails consumerDetails;
 
-	@OneToOne
+	@ManyToOne
 	@JoinColumn(name = "sellerId")
 	private SellerDetails sellerDetails;
 
-	@OneToOne
+	@ManyToOne
 	@JoinColumn(name = "PID")
 	private ProductDetails productDetails;
 
@@ -58,84 +56,5 @@ public class PurchaseDetails {
 	@Pattern(regexp = "^(Placed|Shipped|Delivered)$", message = "Improper purchase status !")
 	private String status;
 
-//	public int getPurchaseId() {
-//		return purchaseId;
-//	}
-//
-//	public void setPurchaseId(int purchaseId) {
-//		this.purchaseId = purchaseId;
-//	}
-//
-//	public ConsumerDetails getConsumerDetails() {
-//		return consumerDetails;
-//	}
-//
-//	public void setConsumerDetails(ConsumerDetails consumerDetails) {
-//		this.consumerDetails = consumerDetails;
-//	}
-//
-//	public SellerDetails getSellerDetails() {
-//		return sellerDetails;
-//	}
-//
-//	public void setSellerDetails(SellerDetails sellerDetails) {
-//		this.sellerDetails = sellerDetails;
-//	}
-//
-//	public ProductDetails getProductDetails() {
-//		return productDetails;
-//	}
-//
-//	public void setProductDetails(ProductDetails productDetails) {
-//		this.productDetails = productDetails;
-//	}
-//
-//	public int getQuantity() {
-//		return quantity;
-//	}
-//
-//	public void setQuantity(int quantity) {
-//		this.quantity = quantity;
-//	}
-//
-//	public float getTotalPrice() {
-//		return totalPrice;
-//	}
-//
-//	public void setTotalPrice(float totalPrice) {
-//		this.totalPrice = totalPrice;
-//	}
-//
-//	public String getPaymentMode() {
-//		return paymentMode;
-//	}
-//
-//	public void setPaymentMode(String paymentMode) {
-//		this.paymentMode = paymentMode;
-//	}
-//
-//	public long getTransactionId() {
-//		return transactionId;
-//	}
-//
-//	public void setTransactionId(long transactionId) {
-//		this.transactionId = transactionId;
-//	}
-//
-//	public String getDateTime() {
-//		return dateTime;
-//	}
-//
-//	public void setDateTime(String dateTime) {
-//		this.dateTime = dateTime;
-//	}
-//
-//	public String getStatus() {
-//		return status;
-//	}
-//
-//	public void setStatus(String status) {
-//		this.status = status;
-//	}
 
 }

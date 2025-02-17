@@ -9,10 +9,10 @@
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.dairyproject</groupId>
-	<artifactId>spring_boot_backend_template</artifactId>
+	<artifactId>dairymilkservice</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>DairyMilkService</name>
-	<description>Dairy Milk Services with Spring Boot 3.x JDK 17</description>
+	<name>DairyDelight</name>
+	<description>Dairy Milk Services for local dairy vendors and consumers</description>
 	<url />
 	<licenses>
 		<license />
@@ -85,6 +85,7 @@
 			<artifactId>commons-lang3</artifactId>
 			<!-- <version>3.14.0</version> -->
 		</dependency>
+		
 		</dependencies>
 		<build>
 			<plugins>

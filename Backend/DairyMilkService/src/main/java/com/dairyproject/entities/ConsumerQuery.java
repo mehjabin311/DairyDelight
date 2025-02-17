@@ -1,7 +1,6 @@
 package com.dairyproject.entities;
 
 import org.hibernate.validator.constraints.Length;
-import org.springframework.stereotype.Component;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

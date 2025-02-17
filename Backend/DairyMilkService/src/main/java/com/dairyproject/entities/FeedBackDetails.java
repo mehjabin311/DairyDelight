@@ -2,7 +2,6 @@ package com.dairyproject.entities;
 
 import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
-import org.springframework.stereotype.Component;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -38,36 +37,6 @@ public class FeedBackDetails {
 	@Lob
 	private String message;
 
-//	public int getFID() {
-//		return FID;
-//	}
-//
-//	public void setFID(int fID) {
-//		FID = fID;
-//	}
-//
-//	public String getName() {
-//		return name;
-//	}
-//
-//	public void setName(String name) {
-//		this.name = name;
-//	}
-//
-//	public String getSubject() {
-//		return subject;
-//	}
-//
-//	public void setSubject(String subject) {
-//		this.subject = subject;
-//	}
-//
-//	public String getMessage() {
-//		return message;
-//	}
-//
-//	public void setMessage(String message) {
-//		this.message = message;
-//	}
+
 
 }

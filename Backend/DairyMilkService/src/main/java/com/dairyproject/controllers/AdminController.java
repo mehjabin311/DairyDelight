@@ -4,16 +4,21 @@ import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dairyproject.dto.ChangePassword;
-import com.dairyproject.dto.Login;
+import com.dairyproject.dto.ChangePasswordDTO;
+import com.dairyproject.dto.LoginDTO;
 import com.dairyproject.entities.Administrator;
 import com.dairyproject.entities.ConsumerDetails;
 import com.dairyproject.entities.ConsumerQuery;
@@ -24,108 +29,124 @@ import com.dairyproject.entities.ProductDetails;
 import com.dairyproject.entities.PurchaseDetails;
 import com.dairyproject.entities.SellerDetails;
 import com.dairyproject.entities.SellerQuery;
-import com.dairyproject.services.AdminServices;
-import com.dairyproject.services.ConsumerServices;
-import com.dairyproject.services.DeletedRecordsServices;
-import com.dairyproject.services.FeedBackServices;
-import com.dairyproject.services.ProductServices;
-import com.dairyproject.services.PurchaseServices;
-import com.dairyproject.services.QueryServices;
-import com.dairyproject.services.SellerServices;
+import com.dairyproject.exceptions.IncorrectAdminDetect;
+import com.dairyproject.exceptions.IncorrectPasswordException;
+import com.dairyproject.exceptions.ProductNotFoundException;
+import com.dairyproject.exceptions.UnmatchedPasswordException;
+import com.dairyproject.services.AdminService;
+import com.dairyproject.services.ConsumerService;
+import com.dairyproject.services.DeletedRecordsService;
+import com.dairyproject.services.FeedBackService;
+import com.dairyproject.services.ProductService;
+import com.dairyproject.services.PurchaseService;
+import com.dairyproject.services.QueryService;
+import com.dairyproject.services.SellerService;
+
 @RestController
 @CrossOrigin
 @RequestMapping("/admin")
 public class AdminController {
 
-	
 	@Autowired
-	private AdminServices adminServ;
-	
-	
-	@Autowired
-	private ConsumerServices conServ;
+	private AdminService adminServ;
 
 	@Autowired
-	private SellerServices sellServ;
+	private ConsumerService conServ;
 
 	@Autowired
-	private DeletedRecordsServices delServ;
+	private SellerService sellServ;
 
 	@Autowired
-	private FeedBackServices feedServ;
+	private DeletedRecordsService delServ;
 
 	@Autowired
-	private QueryServices queryServ;
+	private FeedBackService feedServ;
 
 	@Autowired
-	private ProductServices proServ;
-	
+	private QueryService queryServ;
+
 	@Autowired
-	private PurchaseServices purchaseServ;
+	private ProductService proServ;
+
+	@Autowired
+	private PurchaseService purchaseServ;
 
 	@GetMapping("/fetchconsumerbyemail")
-	public ConsumerDetails getConsumerDetailsByEmailId(@RequestParam String emailId) {
-		return conServ.getConsumerDetailsByEmailId(emailId);
+	public ResponseEntity<?> getConsumerDetailsByEmailId(@RequestParam String emailId) {
+		ConsumerDetails details = conServ.getConsumerDetailsByEmailId(emailId);
+		return new ResponseEntity<>(details, HttpStatus.OK);
 	}
 
 	@GetMapping("/fetchconsumerbyusername")
-	public ConsumerDetails getConsumerDetailsByUsername(@RequestParam String username) {
-		return conServ.getConsumerDetailsByUsername(username);
+	public ResponseEntity<?> getConsumerDetailsByUsername(@RequestParam String username) {
+		ConsumerDetails details = conServ.getConsumerDetailsByUsername(username);
+		return new ResponseEntity<>(details, HttpStatus.OK);
 	}
 
 	@GetMapping("/fetchconsumerbyphone")
-	public ConsumerDetails getConsumerDetailsByPhoneNumber(@RequestParam String phoneNumber) {
-		return conServ.getConsumerDetailsByPhoneNumer(phoneNumber);
+	public ResponseEntity<?> getConsumerDetailsByPhoneNumber(@RequestParam String phoneNumber) {
+		ConsumerDetails details = conServ.getConsumerDetailsByPhoneNumber(phoneNumber);
+		return new ResponseEntity<>(details, HttpStatus.OK);
 	}
 
 	@GetMapping("/removeconsumeraccount")
-	public String deleteConsumerById(@RequestParam Integer consumerId) {
-		return conServ.deleteConsumerDetailsByConsumerId(consumerId);
+	public ResponseEntity<?> deleteConsumerById(@RequestParam Integer consumerId) {
+		String result = conServ.deleteConsumerDetailsByConsumerId(consumerId);
+		return new ResponseEntity<>(result, HttpStatus.OK);
 	}
 
 	@GetMapping("/fetchallconsumers")
-	public List<ConsumerDetails> getAllConsumers() {
-		return conServ.getAllConsumerList();
+	public ResponseEntity<?> getAllConsumers() {
+		List<ConsumerDetails> consumers = conServ.getAllConsumerList();
+		return new ResponseEntity<>(consumers, HttpStatus.OK);
 	}
 
-	@GetMapping("/admin/fetchconsumersbyname")
-	public List<ConsumerDetails> getAllConsumersByName(String name) {
-		return conServ.getConsumerDetailsByFirstName(name);
+	@GetMapping("/fetchconsumersbyname")
+	public ResponseEntity<?> getAllConsumersByName(@RequestParam String name) {
+		List<ConsumerDetails> consumers = conServ.getConsumerDetailsByFirstName(name);
+		return new ResponseEntity<>(consumers, HttpStatus.OK);
 	}
 
 	@GetMapping("/fetchconsumersbypincode")
-	public List<ConsumerDetails> getAllConsumersByPincode(@RequestParam String pincode) {
-		return conServ.getConsumerListByPincode(pincode);
+	public ResponseEntity<?> getAllConsumersByPincode(@RequestParam String pincode) {
+		List<ConsumerDetails> consumers = conServ.getConsumerListByPincode(pincode);
+		return new ResponseEntity<>(consumers, HttpStatus.OK);
 	}
 
 	@GetMapping("/fetchconsumersbydistrict")
-	public List<ConsumerDetails> getAllConsumersByDistrict(String district) {
-		return conServ.getConsumerListByDistrict(district);
+	public ResponseEntity<?> getAllConsumersByDistrict(@RequestParam String district) {
+		List<ConsumerDetails> consumers = conServ.getConsumerListByDistrict(district);
+		return new ResponseEntity<>(consumers, HttpStatus.OK);
 	}
 
 	@GetMapping("/fetchconsumersbytown")
-	public List<ConsumerDetails> getAllConsumersByTown(String town) {
-		return conServ.getConsumerListByTown(town);
+	public ResponseEntity<?> getAllConsumersByTown(@RequestParam String town) {
+		List<ConsumerDetails> consumers = conServ.getConsumerListByTown(town);
+		return new ResponseEntity<>(consumers, HttpStatus.OK);
 	}
 
 	@GetMapping("/getconsumerbyaid")
-	public List<ConsumerDetails> getAllConsumerByAID(Integer aid) {
-		return conServ.getConsumerByAid(aid);
+	public ResponseEntity<?> getAllConsumerByAID(@RequestParam Integer aid) {
+		List<ConsumerDetails> consumers = conServ.getConsumerByAid(aid);
+		return new ResponseEntity<>(consumers, HttpStatus.OK);
 	}
 
 	@GetMapping("/getdeletedconsumers")
-	public List<DeletedConsumerRecords> getAllDeletedConsumers() {
-		return delServ.getDeletedAllConsumerRecords();
+	public ResponseEntity<?> getAllDeletedConsumers() {
+		List<DeletedConsumerRecords> deletedConsumers = delServ.getDeletedAllConsumerRecords();
+		return new ResponseEntity<>(deletedConsumers, HttpStatus.OK);
 	}
 
 	@GetMapping("/getdeletedconsumerbyemail")
-	public DeletedConsumerRecords getDeletedConsumerRecordsByEmail(String emailId) {
-		return delServ.getDeletedConsumerRecordByEmailId(emailId);
+	public ResponseEntity<?> getDeletedConsumerRecordsByEmail(@RequestParam String emailId) {
+		DeletedConsumerRecords deletedRecord = delServ.getDeletedConsumerRecordByEmailId(emailId);
+		return new ResponseEntity<>(deletedRecord, HttpStatus.OK);
 	}
 
 	@GetMapping("/getdeletedconsumerbyname")
-	public List<DeletedConsumerRecords> getDeletedConsumerRecordsByName(String name) {
-		return delServ.getDeletedConsumerRecordsByFirstName(name);
+	public ResponseEntity<?> getDeletedConsumerRecordsByName(@RequestParam String name) {
+		List<DeletedConsumerRecords> deletedRecords = delServ.getDeletedConsumerRecordsByFirstName(name);
+		return new ResponseEntity<>(deletedRecords, HttpStatus.OK);
 	}
 
 	/*
@@ -133,63 +154,80 @@ public class AdminController {
 	 */
 
 	@GetMapping("/fetchsellerbyemail")
-	public SellerDetails getSellerDetailsByEmailId(@RequestParam String emailId) {
-		return sellServ.getSellerDetailsByEmailId(emailId);
+	public ResponseEntity<?> getSellerDetailsByEmailId(@RequestParam String emailId) {
+		SellerDetails details = sellServ.getSellerDetailsByEmailId(emailId);
+		return new ResponseEntity<>(details, HttpStatus.OK);
 	}
 
 	@GetMapping("/fetchsellerbyusername")
-	public SellerDetails getSellerDetailsByUsername(@RequestParam String username) {
-		return sellServ.getSellerDetailsByUsername(username);
+	public ResponseEntity<?> getSellerDetailsByUsername(@RequestParam String username) {
+		SellerDetails details = sellServ.getSellerDetailsByUsername(username);
+		return new ResponseEntity<>(details, HttpStatus.OK);
 	}
 
 	@GetMapping("/fetchsellerbyphone")
-	public SellerDetails getSellerDetailsByPhoneNumber(@RequestParam String phoneNumber) {
-		return sellServ.getSellerDetailsByPhoneNumer(phoneNumber);
+	public ResponseEntity<?> getSellerDetailsByPhoneNumber(@RequestParam String phoneNumber) {
+		SellerDetails details = sellServ.getSellerDetailsByPhoneNumer(phoneNumber);
+		return new ResponseEntity<>(details, HttpStatus.OK);
 	}
 
 	@GetMapping("/removeselleraccount")
-	public String deleteSellerById(@RequestParam Integer sellerId) {
-		return sellServ.deleteSellerDetailsBySellerId(sellerId);
+	public ResponseEntity<?> deleteSellerById(@RequestParam int  sellerId) {
+//		int result = sellServ.deleteSellerDetailsByEmailIdOnly(emailId);
+//		String msg = "Unable to delete seller...";
+//		if (result == 1) {
+//			msg = "Seller removed successfully";
+//		}
+		String msg = sellServ.deleteSellerDetailsBySellerId(sellerId);
+		return new ResponseEntity<>(msg, HttpStatus.OK);
 	}
 
 	@GetMapping("/fetchallsellers")
-	public List<SellerDetails> getAllSellers() {
-		return sellServ.getAllSellerList();
+	public ResponseEntity<?> getAllSellers() {
+		List<SellerDetails> sellers = sellServ.getAllSellerList();
+		return new ResponseEntity<>(sellers, HttpStatus.OK);
 	}
 
 	@GetMapping("/fetchsellerbyname")
-	public List<SellerDetails> getAllSellersByName(@RequestParam String name) {
-		return sellServ.getSellerDetailsByFirstName(name);
+	public ResponseEntity<?> getAllSellersByName(@RequestParam String name) {
+		List<SellerDetails> sellers = sellServ.getSellerDetailsByFirstName(name);
+		return new ResponseEntity<>(sellers, HttpStatus.OK);
 	}
 
 	@GetMapping("/fetchsellersbypincode")
-	public List<SellerDetails> getAllSellersByPincode(@RequestParam String pincode) {
-		return sellServ.getSellerListByPincode(pincode);
+	public ResponseEntity<?> getAllSellersByPincode(@RequestParam String pincode) {
+		List<SellerDetails> sellers = sellServ.getSellerListByPincode(pincode);
+		return new ResponseEntity<>(sellers, HttpStatus.OK);
 	}
 
 	@GetMapping("/fetchsellersbydistrict")
-	public List<SellerDetails> getAllSellersByDistrict(@RequestParam String district) {
-		return sellServ.getSellerListByDistrict(district);
+	public ResponseEntity<?> getAllSellersByDistrict(@RequestParam String district) {
+		List<SellerDetails> sellers = sellServ.getSellerListByDistrict(district);
+		return new ResponseEntity<>(sellers, HttpStatus.OK);
 	}
 
 	@GetMapping("/fetchsellersbytown")
-	public List<SellerDetails> getAllSellersByTown(@RequestParam String town) {
-		return sellServ.getSellerListByTown(town);
+	public ResponseEntity<?> getAllSellersByTown(@RequestParam String town) {
+		List<SellerDetails> sellers = sellServ.getSellerListByTown(town);
+		return new ResponseEntity<>(sellers, HttpStatus.OK);
 	}
 
 	@GetMapping("/getdeletedsellers")
-	public List<DeletedSellerRecords> getAllDeletedSellers() {
-		return delServ.getDeletedAllSellerRecords();
+	public ResponseEntity<?> getAllDeletedSellers() {
+		List<DeletedSellerRecords> deletedSellers = delServ.getDeletedAllSellerRecords();
+		return new ResponseEntity<>(deletedSellers, HttpStatus.OK);
 	}
 
 	@GetMapping("/getdeletedsellerbyname")
-	public List<DeletedSellerRecords> getAllDeletedSellerRecordsByName(@RequestParam String name) {
-		return delServ.getDeletedSellerRecordsByFirstName(name);
+	public ResponseEntity<?> getAllDeletedSellerRecordsByName(@RequestParam String name) {
+		List<DeletedSellerRecords> deletedRecords = delServ.getDeletedSellerRecordsByFirstName(name);
+		return new ResponseEntity<>(deletedRecords, HttpStatus.OK);
 	}
 
 	@GetMapping("/getdeletedsellerbyemail")
-	public DeletedSellerRecords getDeletedSellerRecordByEmailId(@RequestParam String emailId) {
-		return delServ.getDeletedSellerRecordByEmailId(emailId);
+	public ResponseEntity<?> getDeletedSellerRecordByEmailId(@RequestParam String emailId) {
+		DeletedSellerRecords deletedRecord = delServ.getDeletedSellerRecordByEmailId(emailId);
+		return new ResponseEntity<>(deletedRecord, HttpStatus.OK);
 	}
 
 	/*
@@ -197,48 +235,57 @@ public class AdminController {
 	 */
 
 	@GetMapping("/feedback/id")
-	public FeedBackDetails getFeedBackById(@RequestParam Integer fid) {
-		return feedServ.getFeedBackDetailsById(fid);
+	public ResponseEntity<?> getFeedBackById(@RequestParam Integer fid) {
+		FeedBackDetails feedback = feedServ.getFeedBackDetailsById(fid);
+		return new ResponseEntity<>(feedback, HttpStatus.OK);
 	}
 
 	@GetMapping("/feedback/name")
-	public List<FeedBackDetails> getFeedBackByName(@RequestParam String name) {
-		return feedServ.getFeedBackDetailsByname(name);
+	public ResponseEntity<?> getFeedBackByName(@RequestParam String name) {
+		List<FeedBackDetails> feedbackList = feedServ.getFeedBackDetailsByName(name);
+		return new ResponseEntity<>(feedbackList, HttpStatus.OK);
 	}
 
 	@GetMapping("/feedback/subject")
-	public List<FeedBackDetails> getFeedBackBySubject(@RequestParam String subject) {
-		return feedServ.getFeedBackDetailsBySubject(subject);
+	public ResponseEntity<?> getFeedBackBySubject(@RequestParam String subject) {
+		List<FeedBackDetails> feedbackList = feedServ.getFeedBackDetailsBySubject(subject);
+		return new ResponseEntity<>(feedbackList, HttpStatus.OK);
 	}
 
 	@GetMapping("/consumer/query")
-	public List<ConsumerQuery> getAllConsumerQueries() {
-		return queryServ.getAllConsumerQueries();
+	public ResponseEntity<?> getAllConsumerQueries() {
+		List<ConsumerQuery> queries = queryServ.getAllConsumerQueries();
+		return new ResponseEntity<>(queries, HttpStatus.OK);
 	}
 
 	@GetMapping("/consumer/queriesbyemailid")
-	public List<ConsumerQuery> getQueriesByConsumerEmailId(@RequestParam String emailId) {
-		return queryServ.getConsumerQueriesByConsumerEmailId(emailId);
+	public ResponseEntity<?> getQueriesByConsumerEmailId(@RequestParam String emailId) {
+		List<ConsumerQuery> queries = queryServ.getConsumerQueriesByConsumerEmailId(emailId);
+		return new ResponseEntity<>(queries, HttpStatus.OK);
 	}
 
 	@GetMapping("/consumer/queriesbydatetime")
-	public List<ConsumerQuery> getConsumerQueriesByDateTime(@RequestParam String dateTime) {
-		return queryServ.getConsumerQueriesByDateTime(dateTime);
+	public ResponseEntity<?> getConsumerQueriesByDateTime(@RequestParam String dateTime) {
+		List<ConsumerQuery> queries = queryServ.getConsumerQueriesByDateTime(dateTime);
+		return new ResponseEntity<>(queries, HttpStatus.OK);
 	}
 
 	@GetMapping("/seller/query")
-	public List<SellerQuery> getAllSellerQueries() {
-		return queryServ.getAllSellerQueries();
+	public ResponseEntity<?> getAllSellerQueries() {
+		List<SellerQuery> queries = queryServ.getAllSellerQueries();
+		return new ResponseEntity<>(queries, HttpStatus.OK);
 	}
 
 	@GetMapping("/seller/queriesbyemailid")
-	public List<SellerQuery> getQueriesBySellerEmailId(@RequestParam String emailId) {
-		return queryServ.getSellerQueriesBySellerEmailId(emailId);
+	public ResponseEntity<?> getQueriesBySellerEmailId(@RequestParam String emailId) {
+		List<SellerQuery> queries = queryServ.getSellerQueriesBySellerEmailId(emailId);
+		return new ResponseEntity<>(queries, HttpStatus.OK);
 	}
 
 	@GetMapping("/seller/queriesbydatetime")
-	public List<SellerQuery> getSellerQueriesByDateTime(@RequestParam String dateTime) {
-		return queryServ.getSellerQueriesByDateTime(dateTime);
+	public ResponseEntity<?> getSellerQueriesByDateTime(@RequestParam String dateTime) {
+		List<SellerQuery> queries = queryServ.getSellerQueriesByDateTime(dateTime);
+		return new ResponseEntity<>(queries, HttpStatus.OK);
 	}
 
 	/*
@@ -246,23 +293,27 @@ public class AdminController {
 	 */
 
 	@PostMapping("/products/addnewproduct")
-	public String insertNewProductDetails(@RequestBody ProductDetails productDetails) {
-		return proServ.insertNewProductDetails(productDetails);
+	public ResponseEntity<?> insertNewProductDetails(@RequestBody ProductDetails productDetails) {
+		String result = proServ.insertNewProductDetails(productDetails);
+		return new ResponseEntity<>(result, HttpStatus.CREATED);
 	}
 
-	@GetMapping("/products/removeproduct")
-	public String removeProductByPID(@RequestParam Integer pid) {
-		return proServ.removeProductByPID(pid);
+	@DeleteMapping("/products/removeproduct/{pid}") // changed delete mapping
+	public ResponseEntity<?> removeProductByPID(@PathVariable Integer pid) throws ProductNotFoundException {
+		String result = proServ.removeProductByPID(pid);
+		return new ResponseEntity<>(result, HttpStatus.OK);
 	}
 
 	@GetMapping("/products/getallpurchasedetails")
-	public List<PurchaseDetails> getAllPurchaseDetails() {
-		return purchaseServ.getAllPurchaseRecords();
+	public ResponseEntity<?> getAllPurchaseDetails() {
+		List<PurchaseDetails> purchaseDetails = purchaseServ.getAllPurchaseRecords();
+		return new ResponseEntity<>(purchaseDetails, HttpStatus.OK);
 	}
 
 	@GetMapping("/products/getpurchasedetailsbyid")
-	public PurchaseDetails getPurchaseDetailsByPurchaseId(@RequestParam int purchaseId) {
-		return purchaseServ.getPurchaseDetailsFromPurchaseId(purchaseId);
+	public ResponseEntity<?> getPurchaseDetailsByPurchaseId(@RequestParam int purchaseId) {
+		PurchaseDetails purchaseDetails = purchaseServ.getPurchaseDetailsByPurchaseId(purchaseId);
+		return new ResponseEntity<>(purchaseDetails, HttpStatus.OK);
 	}
 
 	/*
@@ -270,22 +321,22 @@ public class AdminController {
 	 */
 
 	@GetMapping("/getadmindetails")
-	public Administrator getAdminDetails() {
-		return adminServ.getAdminDetails();
+	public ResponseEntity<?> getAdminDetails() {
+		Administrator adminDetails = adminServ.getAdminDetails();
+		return new ResponseEntity<>(adminDetails, HttpStatus.OK);
 	}
 
-	@PostMapping("/login")
-	public Administrator adminLogin(@RequestBody Login login) {
-		return adminServ.getLoginDetails(login.getEmailId(), login.getPassword());
+	@PostMapping("/fetchdetailsbyemail")
+	public ResponseEntity<?> adminLogin(@RequestBody LoginDTO login) throws IncorrectAdminDetect {
+		Administrator adminDetails = adminServ.getLoginDetails(login.getEmailId(), login.getPassword());
+		return new ResponseEntity<>(adminDetails, HttpStatus.OK);
 	}
 
-	@PostMapping("/changepassword")
-	public String changeAdminPassword(@RequestBody ChangePassword changePassword) throws UnsupportedEncodingException {
-		return adminServ.changeAdminPassword(changePassword);
+	@PutMapping("/changepassword") // updated for change pass put
+	public ResponseEntity<?> changeAdminPassword(@RequestBody ChangePasswordDTO changePassword)
+			throws UnsupportedEncodingException, UnmatchedPasswordException, IncorrectPasswordException {
+		String result = adminServ.changeAdminPassword(changePassword);
+		return new ResponseEntity<>(result, HttpStatus.OK);
 	}
 
-	
-	
-	
-	
 }

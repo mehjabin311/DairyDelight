@@ -3,7 +3,8 @@ package com.dairyproject.entities;
 import java.util.Set;
 
 import org.hibernate.validator.constraints.Range;
-import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -19,12 +20,14 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Table
 
 @Getter
 @Setter
+@ToString(exclude = "sellerDetails")
 public class ProductDetails {
 
 	@Id
@@ -45,7 +48,15 @@ public class ProductDetails {
 	private String unit;
 
 	@ManyToMany(mappedBy = "productDetails", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@JsonIgnore
 	private Set<SellerDetails> sellerDetails;
+	
+	public void removeSeller(SellerDetails seller) {
+	    if (this.sellerDetails != null) {
+	        this.sellerDetails.remove(seller);
+	        seller.getProductDetails().remove(this); // Remove product from the seller's set
+	    }
+	}
 
 
 
